@@ -38,7 +38,6 @@ interface Department {
   department_id: number;
   department_name: string;
   location: string;
-  id?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -155,7 +154,6 @@ export default function DashboardPage() {
           body: JSON.stringify({
             department_name: departmentName,
             location: location,
-            id: userId,
           }),
         });
         setSuccess(`Department #${editingId} updated successfully.`);
@@ -167,7 +165,6 @@ export default function DashboardPage() {
           body: JSON.stringify({
             department_name: departmentName,
             location: location,
-            id: userId,
           }),
         });
         setSuccess("New department created successfully.");

@@ -1,5 +1,6 @@
 export const CONFIG = {
-  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://cantor-backend.onrender.com",
+  API_BASE_URL:
+    process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-l25e.onrender.com",
   STORAGE_KEYS: {
     ACCESS_TOKEN: "accessToken",
     REFRESH_TOKEN: "refreshToken",
@@ -9,5 +10,11 @@ export const CONFIG = {
     LOGIN: "/login",
     REGISTER: "/register",
     DASHBOARD: "/dashboard",
+  },
+  ENDPOINTS: {
+    LOGIN: "/auth/login",
+    REGISTER: "/auth/register",
+    POSITIONS: "/positions",
+    DEPARTMENTS: "/departments",
   },
 } as const;

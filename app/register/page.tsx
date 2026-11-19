@@ -19,7 +19,8 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://cantor-backend.onrender.com';
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'https://cantor-backend.onrender.com';
       const res = await fetch(`${baseUrl}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,71 +45,72 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md border border-slate-200 p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-slate-900">Create Account</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Register a new account to continue
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="w-full max-w-[440px] bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
+        <div className="p-6 pb-5">
+          <h1 className="text-2xl font-serif font-medium text-gray-900">Create Account</h1>
+          <p className="text-sm font-serif text-gray-500 mt-1">
+            Register a new account to get started.
           </p>
+
+          {error && (
+            <div className="mt-4 p-2.5 rounded-md bg-red-50 border border-red-200 text-red-600 text-xs">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mt-4 p-2.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">
+              {success}
+            </div>
+          )}
+
+          <form id="register-form" onSubmit={handleRegister} className="mt-5 space-y-4">
+            <div>
+              <label className="block text-sm font-serif text-gray-800 mb-1.5">
+                Username
+              </label>
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-gray-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-serif text-gray-800 mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:border-gray-400"
+              />
+            </div>
+          </form>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleRegister} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Choose a username"
-              className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Create a password"
-              className="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-600"
-            />
-          </div>
-
+        <div className="bg-gray-50/70 border-t border-gray-100 px-6 py-4 text-center">
           <button
             type="submit"
+            form="register-form"
             disabled={loading}
-            className="w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-400 text-white font-medium rounded-lg transition"
+            className="w-full py-2.5 px-4 bg-[#141414] hover:bg-black disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition cursor-pointer"
           >
             {loading ? 'Creating account...' : 'Register'}
           </button>
-        </form>
 
-        <p className="mt-6 text-center text-sm text-slate-600">
-          Already have an account?{' '}
-          <Link href="/login" className="text-emerald-700 font-medium hover:underline">
-            Sign in
-          </Link>
-        </p>
+          <p className="mt-3.5 text-xs font-serif text-gray-600">
+            Already have an account?{' '}
+            <Link href="/login" className="underline text-gray-900 hover:text-black">
+              Login
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 "use client";
 
 import { clearTokens, getUserId } from "@/lib/auth";
-
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -15,7 +14,6 @@ import {
 } from "lucide-react";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { apiClient } from "@/lib/api";
-// import { clearTokens } from "@/lib/auth";
 import { CONFIG } from "@/lib/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,10 +34,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Position {
-  position_id: number;
-  position_code: string;
-  position_name: string;
+interface Department {
+  department_id: number;
+  department_name: string;
+  location: string;
   id?: number;
   created_at?: string;
   updated_at?: string;
@@ -50,10 +48,9 @@ export default function DashboardPage() {
   const { isChecking } = useAuthGuard({ requireAuth: true });
 
   // Data states
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(
-    null
-  );
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState<Department | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -62,21 +59,21 @@ export default function DashboardPage() {
   // Form states (shared for Create and Update)
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [positionCode, setPositionCode] = useState("");
-  const [positionName, setPositionName] = useState("");
+  const [departmentName, setDepartmentName] = useState("");
+  const [location, setLocation] = useState("");
 
-  // READ (All Positions)
-  const fetchPositions = useCallback(async () => {
+  // READ (All Departments)
+  const fetchDepartments = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const data = await apiClient<Position[]>(CONFIG.ENDPOINTS.POSITIONS, {
+      const data = await apiClient<Department[]>(CONFIG.ENDPOINTS.DEPARTMENTS, {
         method: "GET",
         requiresAuth: true,
       });
-      setPositions(Array.isArray(data) ? data : []);
+      setDepartments(Array.isArray(data) ? data : []);
     } catch (err: any) {
-      setError(err.message || "Failed to fetch positions.");
+      setError(err.message || "Failed to fetch departments.");
     } finally {
       setLoading(false);
     }
@@ -84,45 +81,45 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isChecking) {
-      fetchPositions();
+      fetchDepartments();
     }
-  }, [isChecking, fetchPositions]);
+  }, [isChecking, fetchDepartments]);
 
-  // READ (Single Position)
-  const handleViewPosition = async (positionId: number) => {
+  // READ (Single Department)
+  const handleViewDepartment = async (departmentId: number) => {
     setError("");
     setSuccess("");
     try {
-      const data = await apiClient<Position>(
-        `${CONFIG.ENDPOINTS.POSITIONS}/${positionId}`,
+      const data = await apiClient<Department>(
+        `${CONFIG.ENDPOINTS.DEPARTMENTS}/${departmentId}`,
         {
           method: "GET",
           requiresAuth: true,
         }
       );
-      setSelectedPosition(data);
+      setSelectedDepartment(data);
     } catch (err: any) {
-      setError(err.message || "Failed to load position details.");
+      setError(err.message || "Failed to load department details.");
     }
   };
 
   // Open Form for CREATE
   const openCreateForm = () => {
     setEditingId(null);
-    setPositionCode("");
-    setPositionName("");
-    setSelectedPosition(null);
+    setDepartmentName("");
+    setLocation("");
+    setSelectedDepartment(null);
     setError("");
     setSuccess("");
     setIsFormOpen(true);
   };
 
   // Open Form for UPDATE
-  const openEditForm = (position: Position) => {
-    setEditingId(position.position_id);
-    setPositionCode(position.position_code);
-    setPositionName(position.position_name);
-    setSelectedPosition(null);
+  const openEditForm = (department: Department) => {
+    setEditingId(department.department_id);
+    setDepartmentName(department.department_name);
+    setLocation(department.location);
+    setSelectedDepartment(null);
     setError("");
     setSuccess("");
     setIsFormOpen(true);
@@ -131,8 +128,8 @@ export default function DashboardPage() {
   const closeForm = () => {
     setIsFormOpen(false);
     setEditingId(null);
-    setPositionCode("");
-    setPositionName("");
+    setDepartmentName("");
+    setLocation("");
   };
 
   // CREATE & UPDATE Submit Handler
@@ -151,33 +148,33 @@ export default function DashboardPage() {
 
     try {
       if (editingId !== null) {
-        // UPDATE (PUT /positions/:id)
-        await apiClient(`${CONFIG.ENDPOINTS.POSITIONS}/${editingId}`, {
+        // UPDATE (PUT /departments/:id)
+        await apiClient(`${CONFIG.ENDPOINTS.DEPARTMENTS}/${editingId}`, {
           method: "PUT",
           requiresAuth: true,
           body: JSON.stringify({
-            position_code: positionCode,
-            position_name: positionName,
+            department_name: departmentName,
+            location: location,
             id: userId,
           }),
         });
-        setSuccess(`Position #${editingId} updated successfully.`);
+        setSuccess(`Department #${editingId} updated successfully.`);
       } else {
-        // CREATE (POST /positions)
-        await apiClient(CONFIG.ENDPOINTS.POSITIONS, {
+        // CREATE (POST /departments)
+        await apiClient(CONFIG.ENDPOINTS.DEPARTMENTS, {
           method: "POST",
           requiresAuth: true,
           body: JSON.stringify({
-            position_code: positionCode,
-            position_name: positionName,
+            department_name: departmentName,
+            location: location,
             id: userId,
           }),
         });
-        setSuccess("New position created successfully.");
+        setSuccess("New department created successfully.");
       }
 
       closeForm();
-      await fetchPositions();
+      await fetchDepartments();
     } catch (err: any) {
       setError(err.message || "Operation failed.");
     } finally {
@@ -185,28 +182,28 @@ export default function DashboardPage() {
     }
   };
 
-  // DELETE (DELETE /positions/:id)
-  const handleDelete = async (positionId: number) => {
+  // DELETE (DELETE /departments/:id)
+  const handleDelete = async (departmentId: number) => {
     const confirmed = window.confirm(
-      `Are you sure you want to delete Position #${positionId}?`
+      `Are you sure you want to delete Department #${departmentId}?`
     );
     if (!confirmed) return;
 
     setError("");
     setSuccess("");
     try {
-      await apiClient(`${CONFIG.ENDPOINTS.POSITIONS}/${positionId}`, {
+      await apiClient(`${CONFIG.ENDPOINTS.DEPARTMENTS}/${departmentId}`, {
         method: "DELETE",
         requiresAuth: true,
       });
 
-      if (selectedPosition?.position_id === positionId) {
-        setSelectedPosition(null);
+      if (selectedDepartment?.department_id === departmentId) {
+        setSelectedDepartment(null);
       }
-      setSuccess(`Position #${positionId} deleted successfully.`);
-      await fetchPositions();
+      setSuccess(`Department #${departmentId} deleted successfully.`);
+      await fetchDepartments();
     } catch (err: any) {
-      setError(err.message || "Failed to delete position.");
+      setError(err.message || "Failed to delete department.");
     }
   };
 
@@ -231,7 +228,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-sm text-muted-foreground">
-              Manage organization positions
+              Manage organization departments
             </p>
           </div>
           <Button variant="destructive" onClick={handleLogout}>
@@ -259,13 +256,13 @@ export default function DashboardPage() {
               <div>
                 <CardTitle>
                   {editingId !== null
-                    ? `Update Position #${editingId}`
-                    : "Create New Position"}
+                    ? `Update Department #${editingId}`
+                    : "Create New Department"}
                 </CardTitle>
                 <CardDescription>
                   {editingId !== null
-                    ? "Modify the position code and name below."
-                    : "Fill in the details to add a new position."}
+                    ? "Modify the department name and location below."
+                    : "Fill in the details to add a new department."}
                 </CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={closeForm}>
@@ -276,22 +273,22 @@ export default function DashboardPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="position_code">Position Code</Label>
+                    <Label htmlFor="department_name">Department Name</Label>
                     <Input
-                      id="position_code"
-                      placeholder="e.g. Pres"
-                      value={positionCode}
-                      onChange={(e) => setPositionCode(e.target.value)}
+                      id="department_name"
+                      placeholder="e.g. Cardiology"
+                      value={departmentName}
+                      onChange={(e) => setDepartmentName(e.target.value)}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="position_name">Position Name</Label>
+                    <Label htmlFor="location">Location</Label>
                     <Input
-                      id="position_name"
-                      placeholder="e.g. President"
-                      value={positionName}
-                      onChange={(e) => setPositionName(e.target.value)}
+                      id="location"
+                      placeholder="e.g. Building A, 2nd Floor"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
                       required
                     />
                   </div>
@@ -305,7 +302,7 @@ export default function DashboardPage() {
                       ? "Saving..."
                       : editingId !== null
                       ? "Save Changes"
-                      : "Create Position"}
+                      : "Create Department"}
                   </Button>
                 </div>
               </form>
@@ -314,50 +311,54 @@ export default function DashboardPage() {
         )}
 
         {/* READ Single Item Details Card */}
-        {selectedPosition && (
+        {selectedDepartment && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
                 <CardTitle>
-                  Position Details (#{selectedPosition.position_id})
+                  Department Details (#{selectedDepartment.department_id})
                 </CardTitle>
                 <CardDescription>
-                  Fetched directly from GET /positions/
-                  {selectedPosition.position_id}
+                  Fetched directly from GET /departments/
+                  {selectedDepartment.department_id}
                 </CardDescription>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSelectedPosition(null)}
+                onClick={() => setSelectedDepartment(null)}
               >
                 <X className="w-4 h-4" />
               </Button>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground block">Position ID</span>
-                <span className="font-medium">
-                  {selectedPosition.position_id}
+                <span className="text-muted-foreground block">
+                  Department ID
                 </span>
-              </div>
-              <div>
-                <span className="text-muted-foreground block">Code</span>
                 <span className="font-medium">
-                  {selectedPosition.position_code}
+                  {selectedDepartment.department_id}
                 </span>
               </div>
               <div>
                 <span className="text-muted-foreground block">Name</span>
                 <span className="font-medium">
-                  {selectedPosition.position_name}
+                  {selectedDepartment.department_name}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block">Location</span>
+                <span className="font-medium">
+                  {selectedDepartment.location}
                 </span>
               </div>
               <div>
                 <span className="text-muted-foreground block">Created At</span>
                 <span className="font-medium">
-                  {selectedPosition.created_at
-                    ? new Date(selectedPosition.created_at).toLocaleDateString()
+                  {selectedDepartment.created_at
+                    ? new Date(
+                        selectedDepartment.created_at
+                      ).toLocaleDateString()
                     : "N/A"}
                 </span>
               </div>
@@ -365,19 +366,19 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Positions Table Card */}
+        {/* Departments Table Card */}
         <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <CardTitle>Positions</CardTitle>
+              <CardTitle>Departments</CardTitle>
               <CardDescription>
-                A list of all positions stored in the backend.
+                A list of all departments stored in the backend.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                onClick={fetchPositions}
+                onClick={fetchDepartments}
                 disabled={loading}
               >
                 <RefreshCw
@@ -387,7 +388,7 @@ export default function DashboardPage() {
               </Button>
               <Button onClick={openCreateForm}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Position
+                Create Department
               </Button>
             </div>
           </CardHeader>
@@ -397,8 +398,8 @@ export default function DashboardPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[90px]">ID</TableHead>
-                    <TableHead>Position Code</TableHead>
-                    <TableHead>Position Name</TableHead>
+                    <TableHead>Department Name</TableHead>
+                    <TableHead>Location</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -410,30 +411,30 @@ export default function DashboardPage() {
                         colSpan={5}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        Loading positions...
+                        Loading departments...
                       </TableCell>
                     </TableRow>
-                  ) : positions.length === 0 ? (
+                  ) : departments.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={5}
                         className="h-24 text-center text-muted-foreground"
                       >
-                        No positions found. Click &quot;Create Position&quot; to
-                        add one.
+                        No departments found. Click &quot;Create
+                        Department&quot; to add one.
                       </TableCell>
                     </TableRow>
                   ) : (
-                    positions.map((pos) => (
-                      <TableRow key={pos.position_id}>
+                    departments.map((dept) => (
+                      <TableRow key={dept.department_id}>
                         <TableCell className="font-medium">
-                          {pos.position_id}
+                          {dept.department_id}
                         </TableCell>
-                        <TableCell>{pos.position_code}</TableCell>
-                        <TableCell>{pos.position_name}</TableCell>
+                        <TableCell>{dept.department_name}</TableCell>
+                        <TableCell>{dept.location}</TableCell>
                         <TableCell>
-                          {pos.created_at
-                            ? new Date(pos.created_at).toLocaleDateString()
+                          {dept.created_at
+                            ? new Date(dept.created_at).toLocaleDateString()
                             : "-"}
                         </TableCell>
                         <TableCell className="text-right">
@@ -442,7 +443,7 @@ export default function DashboardPage() {
                               variant="outline"
                               size="sm"
                               onClick={() =>
-                                handleViewPosition(pos.position_id)
+                                handleViewDepartment(dept.department_id)
                               }
                             >
                               <Eye className="w-4 h-4 mr-1" />
@@ -451,7 +452,7 @@ export default function DashboardPage() {
                             <Button
                               variant="secondary"
                               size="sm"
-                              onClick={() => openEditForm(pos)}
+                              onClick={() => openEditForm(dept)}
                             >
                               <Pencil className="w-4 h-4 mr-1" />
                               Update
@@ -459,7 +460,7 @@ export default function DashboardPage() {
                             <Button
                               variant="destructive"
                               size="sm"
-                              onClick={() => handleDelete(pos.position_id)}
+                              onClick={() => handleDelete(dept.department_id)}
                             >
                               <Trash2 className="w-4 h-4 mr-1" />
                               Delete
